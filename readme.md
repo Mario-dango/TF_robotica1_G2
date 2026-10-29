@@ -40,7 +40,8 @@ El desarrollo del Trabajo Final integra los conocimientos adquiridos a lo largo 
  ┣ 📂 multimedia/
  ┃ ┣ 🖼️ perfiles_cartesianos.png
  ┃ ┣ 🖼️ perfiles_articulares.png
- ┃ ┗ 🖼️ simulacion_espacial_3D.png
+ ┃ ┗ 🖼️ simulacion_espacial_3D.pnghttps://grabcad.com/library/fanuc-m-10id-12-1
+
  ┗ 📜 README.md
 ```
 
