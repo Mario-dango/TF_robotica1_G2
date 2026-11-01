@@ -1,0 +1,125 @@
+Conversión de STEP a Solid Edge
+Fecha: viernes,octubre 30,2026 02:17a. m.
+Archivo fuente: C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\M-10iD-12.step
+Autor: Shue
+Organización: Unknown organisation
+Sistema de origen: HOOPS Exchange
+
+Equipo:
+Procesador: 12th Gen Intel(R) Core(TM) i7-12650H
+Sistema operativo: Windows 11 Version:26H2 Build:26300 System Type:64-bit
+Memoria instalada: 15.62 GB
+
+Información del programa
+Versión de Parasolid: 37.0.118
+Versión de PSBodyShop: 37.0.94
+Versión del adaptador Step: 15.0.142
+Versión de Solid Edge: 225.00.01.004 x64
+
+Opciones de importación de STEP
+Importar cuerpos facetados: Activado
+Importar cuerpos revisados: Desactivado
+Importar curvas: Activado
+Importar sin guardar: Activado
+Importar varios cuerpos como archivo de una pieza: Activado
+Optimización de la importación: Desactivado
+Importar superficies unidas: Activado
+Importar sólidos booleanos: Activado
+Crear operación base: Activado
+Simplificar geometría: Activado
+Importar curvas para sobreimpresión: Activado
+Importar unidad de disco: C:
+Importar superficies unidas: Activado
+Importar superficies: Activado
+Importar vía de acceso de salida: C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1
+Importar con vía de acceso de salida predeterminada habilitada: Activado
+Importar PMI: Desactivado.
+Importar como componentes internos: Desactivado
+Importar vía de acceso: 
+
+Convirtiendo a tipos de datos Parasolid...
++Empezar conjunto: 1
++Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\M-10iD-12.asm
+|--+Empezar conjunto: 2
+|--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\M-10iD_12.asm
+|  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer.par
+|  |--+Empezar conjunto: 3
+|  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\J1.asm
+|  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_0.par
+|  |  |--+Empezar conjunto: 4
+|  |  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\J2.asm
+|  |  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_1.par
+|  |  |  |--+Empezar conjunto: 5
+|  |  |  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\J3.asm
+|  |  |  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_2.par
+|  |  |  |  |--+Empezar conjunto: 6
+|  |  |  |  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\J4.asm
+|  |  |  |  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_3.par
+|  |  |  |  |  |--+Empezar conjunto: 7
+|  |  |  |  |  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\J5.asm
+|  |  |  |  |  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_4.par
+|  |  |  |  |  |  |--+Empezar conjunto: 8
+|  |  |  |  |  |  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\J6.asm
+|  |  |  |  |  |  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_5.par
+|  |  |  |  |  |  |  |--+Empezar conjunto: 9
+|  |  |  |  |  |  |  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\mountplate.asm
+Cuerpos: 0
+|  |  |  |  |  |  |  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_6.par
+Cuerpos: 0
+|  |  |  |  |  |  |  |--+Piezas totales: 0
+|  |  |  |  |  |  |  |--+Conjuntos: 0
+|  |  |  |  |  |  |  |--+Cuerpos sólidos: 0
+|  |  |  |  |  |  |  |--+Cuerpos de hoja: 0
+|  |  |  |  |  |  |  |--+Terminar conjunto: 9
+|  |  |  |  |  |  |--+Piezas totales: 3
+|  |  |  |  |  |  |--+Conjuntos: 1
+|  |  |  |  |  |  |--+Cuerpos sólidos: 2
+|  |  |  |  |  |  |--+Cuerpos de hoja: 0
+|  |  |  |  |  |  |--+Terminar conjunto: 8
+|  |  |  |  |  |--+Piezas totales: 5
+|  |  |  |  |  |--+Conjuntos: 1
+|  |  |  |  |  |--+Cuerpos sólidos: 2
+|  |  |  |  |  |--+Cuerpos de hoja: 2
+|  |  |  |  |  |--+Terminar conjunto: 7
+|  |  |  |  |--+Piezas totales: 31
+|  |  |  |  |--+Conjuntos: 1
+|  |  |  |  |--+Cuerpos sólidos: 0
+|  |  |  |  |--+Cuerpos de hoja: 30
+|  |  |  |  |--+Terminar conjunto: 6
+|  |  |  |--+Piezas totales: 591
+|  |  |  |--+Conjuntos: 1
+|  |  |  |--+Cuerpos sólidos: 6
+|  |  |  |--+Cuerpos de hoja: 584
+|  |  |  |--+Terminar conjunto: 5
+|  |  |--+Piezas totales: 79
+|  |  |--+Conjuntos: 1
+|  |  |--+Cuerpos sólidos: 78
+|  |  |--+Cuerpos de hoja: 0
+|  |  |--+Terminar conjunto: 4
+|  |--+Piezas totales: 713
+|  |--+Conjuntos: 1
+|  |--+Cuerpos sólidos: 0
+|  |--+Cuerpos de hoja: 712
+|  |--+Terminar conjunto: 3
+|  |--+Empezar conjunto: 3
+|  |--+Creado archivo de conjunto SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\Robot World.asm
+Cuerpos: 0
+|  |  |--+Creado archivo de pieza SE C:\Users\mprob\Downloads\fanuc-m-10id-12-1.snapshot.1\GeoContainer_7.par
+Cuerpos: 0
+|  |--+Piezas totales: 0
+|  |--+Conjuntos: 0
+|  |--+Cuerpos sólidos: 0
+|  |--+Cuerpos de hoja: 0
+|  |--+Terminar conjunto: 3
+|--+Piezas totales: 6
+|--+Conjuntos: 2
+|--+Cuerpos sólidos: 4
+|--+Cuerpos de hoja: 0
+|--+Terminar conjunto: 2
++Piezas totales: 1
++Conjuntos: 1
++Cuerpos sólidos: 0
++Cuerpos de hoja: 0
++Terminar conjunto: 1
+Proceso de conversión completado
+Tiempo total requerido para convertir y posprocesar:00 : 00 : 23
