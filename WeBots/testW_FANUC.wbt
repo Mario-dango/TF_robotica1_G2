@@ -1,0 +1,164 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.28905774658258493 -0.11889417005656662 0.9498998870760845 3.8865456578889015
+  position 1583.379940916604 1611.4537173648268 1960.8038304281986
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 5000 5000
+  wallHeight 1000
+}
+Robot {
+  children [
+    Solid {
+      children [
+        HingeJoint {
+          endPoint Solid {
+            children [
+              HingeJoint {
+                endPoint Solid {
+                  translation 74.64 0 450.72
+                  children [
+                    HingeJoint {
+                      endPoint Solid {
+                        translation 0.000193029 0 640.11
+                        rotation 0 1 0 1.5708
+                        children [
+                          HingeJoint {
+                            endPoint Solid {
+                              translation -211.19 4.53 699.47
+                              children [
+                                HingeJoint {
+                                  endPoint Solid {
+                                    rotation 1 0 0 -1.5707953071795862
+                                    children [
+                                      HingeJoint {
+                                        endPoint Solid {
+                                          translation 0 -89.26 -0.000327874
+                                          rotation 1 0 0 1.5708
+                                          children [
+                                            Shape {
+                                              appearance Appearance {
+                                                material Material {
+                                                  diffuseColor 0 0 0.498039
+                                                }
+                                              }
+                                              geometry Mesh {
+                                                url [
+                                                  "../Recursos/fanuc-m-10id-12-1.snapshot.1/falange.stl"
+                                                ]
+                                              }
+                                            }
+                                          ]
+                                          name "brida"
+                                        }
+                                      }
+                                      Shape {
+                                        appearance Appearance {
+                                          material Material {
+                                            diffuseColor 0.890196 0.447059 0
+                                          }
+                                        }
+                                        geometry Mesh {
+                                          url [
+                                            "../Recursos/fanuc-m-10id-12-1.snapshot.1/muneca.stl"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                    name "muneca"
+                                  }
+                                }
+                                Shape {
+                                  appearance Appearance {
+                                    material Material {
+                                      diffuseColor 1 1 0
+                                    }
+                                  }
+                                  geometry Mesh {
+                                    url [
+                                      "../Recursos/fanuc-m-10id-12-1.snapshot.1/antebrazo.stl"
+                                    ]
+                                  }
+                                }
+                              ]
+                              name "atebrazo"
+                            }
+                          }
+                          Shape {
+                            appearance Appearance {
+                              material Material {
+                                diffuseColor 0 1 1
+                              }
+                            }
+                            geometry Mesh {
+                              url [
+                                "../Recursos/fanuc-m-10id-12-1.snapshot.1/codo.stl"
+                              ]
+                            }
+                          }
+                        ]
+                        name "codo"
+                      }
+                    }
+                    Shape {
+                      appearance Appearance {
+                        material Material {
+                          diffuseColor 0.9 0.133333 0
+                        }
+                      }
+                      geometry Mesh {
+                        url [
+                          "../Recursos/fanuc-m-10id-12-1.snapshot.1/brazo.stl"
+                        ]
+                      }
+                    }
+                  ]
+                  name "brazo"
+                }
+              }
+              Shape {
+                appearance Appearance {
+                  material Material {
+                    diffuseColor 0.6 0.133333 0.6
+                  }
+                }
+                geometry Mesh {
+                  url [
+                    "../Recursos/fanuc-m-10id-12-1.snapshot.1/hombro.stl"
+                  ]
+                }
+              }
+            ]
+            name "hombro"
+          }
+        }
+        Shape {
+          appearance Appearance {
+            material Material {
+              diffuseColor 0 0.133333 0
+            }
+          }
+          geometry Mesh {
+            url [
+              "../Recursos/fanuc-m-10id-12-1.snapshot.1/base.stl"
+            ]
+          }
+        }
+      ]
+      name "base"
+    }
+  ]
+  name "FANUC M10iD/12"
+  controller "<extern>"
+}

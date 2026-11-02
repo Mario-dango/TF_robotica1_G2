@@ -1,18 +1,52 @@
-% =========================================================================
-% Definición del robot FANUC M-10iD 
-% =========================================================================
+% b. declaramos dh, en cada fila tenemos cada uno de los parametros de cada
+% articulacion
 
-L(1) = Link('d', 0.45, 'a', 0.15, 'alpha', -pi/2, 'qlim', [-180 180]*pi/180);
-L(2) = Link('d', 0,    'a', 0.60, 'alpha', 0,      'qlim', [-90 150]*pi/180);
-L(3) = Link('d', 0,    'a', 0.20, 'alpha', -pi/2, 'qlim', [-180 180]*pi/180);
-L(4) = Link('d', 0.67, 'a', 0,    'alpha', pi/2,  'qlim', [-180 180]*pi/180);
-L(5) = Link('d', 0,    'a', 0,    'alpha', -pi/2, 'qlim', [-180 180]*pi/180);
-L(6) = Link('d', 0.10, 'a', 0,    'alpha', 0,      'qlim', [-360 360]*pi/180);
+dh = [
+    0,   0.450,   0.075,   pi/2;
+    0,       0,   0.840,      0;
+    0,  0.1239,   0.195,   pi/2;
+    0,   1.100,       0,   pi/2;
+    0,       0,       0,  -pi/2;
+    0,   0.075,       0,      0
+    ];
 
-R = SerialLink(L, 'name', 'FANUC_M10iD');
 
-workspace = [-2, 2, -2, 2, 0, 3];
-% q_inicial = [q1, q2, q3, q4, q5, q6]
-q_inicial = [0, 0, 0, 0, -pi/2, 0];
+% preasignacion de memoria
+L = Link.empty(0, 6);
 
-R.teach(q_inicial, 'workspace', workspace, 'jointdiam', 0.4, 'scale', 0.5);
+for i = 1:6
+    L(i) = Link(dh(i, 1:4));
+end
+
+% c. creamos objeto SerialLink
+
+R = SerialLink(L);
+R.name = 'FANUC M-10iD/8L';
+
+% limites articulares del robot
+R.qlim = [deg2rad(-170), deg2rad(170);
+          deg2rad(-170), deg2rad(65);
+          deg2rad(-170), deg2rad(285);
+          deg2rad(-190), deg2rad(190);
+          deg2rad(-140), deg2rad(140);
+          deg2rad(-270), deg2rad(270);
+];
+
+% ponemos un offset de 90° grados en q2 para tener una posición como la del
+% datasheet del robot FANUC M10iD/8L
+
+R.offset = [0 pi/2 0 0 0 0];
+
+% Matriz para base y herramienta
+R.base = [1, 0, 0,   0;
+          0, 1, 0,   0;
+          0, 0, 1, 0.6;
+          0, 0,  0,  1];
+
+R.tool = [ 0.9063,  0,  0.4226, -0.0634;
+                0,  1,       0,       0; 
+          -0.4226,  0,  0.9063,  0.2963;
+                0,  0,       0,      1];
+
+% d. definimos el workspace con el formato [-limX, +limX, -limY, +limY, -limZ, +limZ]
+workspace = [-3 3 -3 3 -1 4];

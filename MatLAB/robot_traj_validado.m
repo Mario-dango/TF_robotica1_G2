@@ -32,6 +32,12 @@ if ~exist('R', 'var')
     robot;   % ejecuta robot.m → crea L(1..6) y R
 end
 
+% Verificar que la función de CI esté disponible en la carpeta actual o PATH.
+if exist('IK_numeric', 'file') ~= 2
+    error(['No se encontró IK_numeric.m. Coloca ese archivo en la misma ', ...
+           'carpeta que robot_traj.m o agrégalo al MATLAB path.']);
+end
+
 % Herramienta: antorcha de soldadura MIG
 %   - Acople:    100 mm en Z
 %   - Cuerpo:    196.3 mm en Z
@@ -63,7 +69,7 @@ fprintf('  Base: pedestal %.0f mm\n\n', 600);
 disp('=== PUNTOS CLAVE ===');
 
 % --- Q_home: postura de reposo (mínimo esfuerzo, codo recogido) ---
-q_home = [0, -pi/2, -pi, -pi, -pi/2, 0];
+q_home = [0, -pi/4, -pi/2, -pi/2, -pi/4, 0];
 
 % --- T_aprox: punto de aproximación (50 mm sobre el inicio del cordón) ---
 %     El robot desciende desde aquí hasta T_inicio en línea recta.
@@ -83,27 +89,35 @@ T_inicio = R.base.T * transl(X_cord, Y_ini,  Z_cord)  * ori;
 T_fin    = R.base.T * transl(X_cord, Y_fin,  Z_cord)  * ori;
 T_retiro = R.base.T * transl(X_cord, Y_fin,  Z_aprox) * ori;
 % 
-% % Semilla IK: postura "codo arriba", evita singularidades cercanas
-% q_seed = [0, 0, 0, 0, -pi/2, 0];
-% 
-% % Cinemática inversa de los cuatro puntos cartesianos
-% q_aprox  = R.ikcon(T_aprox,  q_seed);
-% q_inicio = R.ikcon(T_inicio, q_seed);
-% q_fin    = R.ikcon(T_fin,    q_seed);
-% q_retiro = R.ikcon(T_retiro, q_seed);
-
-% Semilla IK inicial orientada hacia la mesa
+% Semilla inicial para el solver numérico.
+% La función IK_numeric comprueba convergencia, límites articulares y
+% continuidad entre soluciones consecutivas.
 q_seed = [0, pi/4, -pi/4, 0, -pi/2, 0];
 
-% Usamos ikcon (robusto) pero ENCADENANDO las semillas.
-% Al pasar la pose anterior como semilla del próximo punto, 
-% obligamos al solver a elegir la solución más cercana, evitando giros de 360°.
-q_aprox  = R.ikcon(T_aprox,  q_seed);
-q_inicio = R.ikcon(T_inicio, q_aprox);
-q_fin    = R.ikcon(T_fin,    q_inicio);
-q_retiro = R.ikcon(T_retiro, q_fin);
+% Comprobar que la postura home también sea admisible según R.qlim.
+if any(q_home < R.qlim(:,1)' - 1e-9) || any(q_home > R.qlim(:,2)' + 1e-9)
+    error('La configuración q_home está fuera de los límites articulares R.qlim.');
+end
 
-resolver_CI_trayectoria(R,poses, true, q_seed);
+% Resolver los puntos críticos en orden, encadenando la semilla.
+% No continuar si alguna pose no converge o no supera las validaciones.
+[ok, q_tmp, msg] = IK_numeric(R, T_aprox, true, q_seed);
+if ~ok, error('CI de T_aprox rechazada por IK_numeric: %s', msg); end
+q_aprox = q_tmp(end,:);
+
+[ok, q_tmp, msg] = IK_numeric(R, T_inicio, true, q_aprox);
+if ~ok, error('CI de T_inicio rechazada por IK_numeric: %s', msg); end
+q_inicio = q_tmp(end,:);
+
+[ok, q_tmp, msg] = IK_numeric(R, T_fin, true, q_inicio);
+if ~ok, error('CI de T_fin rechazada por IK_numeric: %s', msg); end
+q_fin = q_tmp(end,:);
+
+[ok, q_tmp, msg] = IK_numeric(R, T_retiro, true, q_fin);
+if ~ok, error('CI de T_retiro rechazada por IK_numeric: %s', msg); end
+q_retiro = q_tmp(end,:);
+
+fprintf('  Validación IK de puntos críticos: correcta.\n');
 
 fprintf('  Cordón: X=%.2fm, Y=[%.2f → %.2f]m, Z=%.2fm\n', ...
     X_cord, Y_ini, Y_fin, Z_cord);
@@ -143,6 +157,14 @@ fprintf('  Retiro → Home:   %.1f s\n', t_vuelta);
 fprintf('  TIEMPO TOTAL:    %.1f s\n\n', ...
     t_aprox+t_desc+t_cord+t_retiro+t_vuelta);
 
+% Límites de velocidad articular de referencia para FANUC M-10iD/12.
+% Se aplica un margen del 20%: no se busca operar al máximo nominal.
+% Valores nominales publicados por FANUC (°/s): J1..J6 = [260 240 260 430 450 720].
+% Ajustar si robot.m representa otra variante/configuración del manipulador.
+velocidad_nominal_deg_s = [260 240 260 430 450 720];
+margen_velocidad = 0.80;
+lim_velocidad_rad_s = deg2rad(velocidad_nominal_deg_s * margen_velocidad);
+
 % =========================================================================
 % SOLUCIÓN A — INTERPOLACIÓN ARTICULAR (jtraj)
 %   Principio: IK solo en los puntos extremos de cada tramo,
@@ -158,6 +180,18 @@ disp('=== SOLUCIÓN A: Interpolación Articular (jtraj) ===');
 [qA_retiro, qdA_retiro, qddA_retiro] = jtraj(q_fin,    q_retiro, tv_retiro);
 [qA_vuelta, qdA_vuelta, qddA_vuelta] = jtraj(q_retiro, q_home,   tv_vuelta);
 
+% Validar límites, continuidad y velocidades en todos los tramos articulares.
+validarTrayectoriaArticular(R, qA_aprox,  'Solución A: home → aproximación');
+validarTrayectoriaArticular(R, qA_desc,   'Solución A: aproximación → inicio');
+validarTrayectoriaArticular(R, qA_cord,   'Solución A: cordón');
+validarTrayectoriaArticular(R, qA_retiro, 'Solución A: retiro');
+validarTrayectoriaArticular(R, qA_vuelta, 'Solución A: regreso a home');
+validarVelocidadesArticulares(qdA_aprox,  lim_velocidad_rad_s, 'Solución A: home → aproximación');
+validarVelocidadesArticulares(qdA_desc,   lim_velocidad_rad_s, 'Solución A: aproximación → inicio');
+validarVelocidadesArticulares(qdA_cord,   lim_velocidad_rad_s, 'Solución A: cordón');
+validarVelocidadesArticulares(qdA_retiro, lim_velocidad_rad_s, 'Solución A: retiro');
+validarVelocidadesArticulares(qdA_vuelta, lim_velocidad_rad_s, 'Solución A: regreso a home');
+
 % Concatenar tramos (el cordón es el tramo de análisis principal)
 % Para los gráficos de análisis usamos solo el tramo del cordón
 qA   = qA_cord;
@@ -167,6 +201,7 @@ tA   = tv_cord;
 
 % Trayectoria completa para simulación 3D
 qA_full = [qA_aprox; qA_desc; qA_cord; qA_retiro; qA_vuelta];
+validarTrayectoriaArticular(R, qA_full, 'Solución A: ciclo completo');
 
 % Cinemática directa para obtener posición cartesiana del TCP
 xyzA = zeros(pasos_cord, 3);
@@ -187,7 +222,7 @@ disp('  Solución A calculada.');
 %   Principio: interpolación de la transformación homogénea (línea recta
 %   en posición + interpolación esférica en orientación).
 %   Luego IK punto a punto a lo largo de la recta.
-%   Consecuencia: TCP sigue exactamente la trayectoria programada.
+%   La IK se valida con FK para comprobar que el TCP siga la referencia.
 % =========================================================================
 disp('=== SOLUCIÓN B: Interpolación Cartesiana (ctraj) ===');
 
@@ -195,25 +230,43 @@ disp('=== SOLUCIÓN B: Interpolación Cartesiana (ctraj) ===');
 % (los tramos libres siguen siendo articulares para mayor eficiencia)
 T_tray_B = ctraj(T_inicio, T_fin, pasos_cord);
 
-% IK punto a punto (usa la configuración anterior como semilla → consistencia)
-qB   = zeros(pasos_cord, 6);
-q_prev = q_inicio;
-for i = 1:pasos_cord
-    qB(i,:) = R.ikcon(T_tray_B(:,:,i), q_prev);
-    q_prev  = qB(i,:);    % semilla recurrente: evita saltos de configuración
+% Resolver TODA la secuencia cartesiana con IK_numeric.
+% El solver conserva la continuidad desde q_inicio y rechaza la trayectoria
+% si no converge, excede R.qlim o presenta saltos articulares > 0.5 rad.
+[ok, qB, msg] = IK_numeric(R, T_tray_B, true, q_inicio);
+if ~ok
+    error('Trayectoria cartesiana rechazada por IK_numeric: %s', msg);
 end
+
+if size(qB,1) ~= pasos_cord || size(qB,2) ~= 6
+    error('IK_numeric devolvió una matriz articular con dimensiones inesperadas.');
+end
+validarTrayectoriaArticular(R, qB, 'Solución B: cordón cartesiano');
 
 % Velocidad y aceleración articular por diferenciación numérica
 dt = tv_cord(2) - tv_cord(1);
 qdB  = gradient(qB,  dt);
 qddB = gradient(qdB, dt);
+validarVelocidadesArticulares(qdB, lim_velocidad_rad_s, 'Solución B: cordón cartesiano');
 
 tB = tv_cord;
 
-% Extraer coordenadas cartesianas de las matrices T_tray_B
-xyzB = zeros(pasos_cord, 3);
+% Comparar la trayectoria PEDIDA con la que realmente alcanza el robot.
+% xyzB_ref: posiciones objetivo de ctraj.
+% xyzB: posiciones reales, reconstruidas con la cinemática directa fkine.
+xyzB_ref = zeros(pasos_cord, 3);
+xyzB     = zeros(pasos_cord, 3);
+error_pose_B = zeros(pasos_cord, 1);
 for i = 1:pasos_cord
-    xyzB(i,:) = transl(T_tray_B(:,:,i))';
+    T_objetivo = T_tray_B(:,:,i);
+    T_real = double(R.fkine(qB(i,:)));
+    xyzB_ref(i,:) = transl(T_objetivo)';
+    xyzB(i,:)     = transl(T_real)';
+    error_pose_B(i) = norm(T_real - T_objetivo, 'fro');
+end
+error_TCP_B_max = max(error_pose_B);
+if error_TCP_B_max > 1e-3
+    error('La FK no reproduce la trayectoria cartesiana. Error máximo: %.6g', error_TCP_B_max);
 end
 
 % Velocidad y aceleración cartesiana por diferenciación numérica
@@ -222,18 +275,31 @@ axyzB  = gradient(vxyzB, dt);
 
 % Trayectoria completa para simulación 3D
 % (tramos libres articulares, cordón con IK de ctraj)
-[qB_aprox,  ~, ~] = jtraj(q_home,   q_aprox,  tv_aprox);
-[qB_desc,   ~, ~] = jtraj(q_aprox,  q_inicio, tv_desc);
-[qB_retiro, ~, ~] = jtraj(q_fin,    q_retiro, tv_retiro);
-[qB_vuelta, ~, ~] = jtraj(q_retiro, q_home,   tv_vuelta);
+[qB_aprox,  qdB_aprox,  ~] = jtraj(q_home,   q_aprox,  tv_aprox);
+[qB_desc,   qdB_desc,   ~] = jtraj(q_aprox,  q_inicio, tv_desc);
 
-% Recalcular q_fin para Solución B (puede diferir levemente de q_fin articular)
+% La última configuración de la trayectoria cartesiana es el extremo real
+% de Solución B. Resolver el retiro desde ESA configuración, no desde q_fin A.
 q_fin_B = qB(end,:);
+[ok, q_tmp, msg] = IK_numeric(R, T_retiro, true, q_fin_B);
+if ~ok, error('CI de retiro para Solución B rechazada por IK_numeric: %s', msg); end
+q_retiro_B = q_tmp(end,:);
 
-% Recalcular retiro y vuelta usando el q_fin de la Solución B
-[qB_retiro, ~, ~] = jtraj(q_fin_B,  q_retiro, tv_retiro);
+[qB_retiro, qdB_retiro, ~] = jtraj(q_fin_B,    q_retiro_B, tv_retiro);
+[qB_vuelta,  qdB_vuelta,  ~] = jtraj(q_retiro_B, q_home,    tv_vuelta);
+
+% Validar también los tramos libres de la Solución B.
+validarTrayectoriaArticular(R, qB_aprox,  'Solución B: home → aproximación');
+validarTrayectoriaArticular(R, qB_desc,   'Solución B: aproximación → inicio');
+validarTrayectoriaArticular(R, qB_retiro, 'Solución B: retiro');
+validarTrayectoriaArticular(R, qB_vuelta, 'Solución B: regreso a home');
+validarVelocidadesArticulares(qdB_aprox,  lim_velocidad_rad_s, 'Solución B: home → aproximación');
+validarVelocidadesArticulares(qdB_desc,   lim_velocidad_rad_s, 'Solución B: aproximación → inicio');
+validarVelocidadesArticulares(qdB_retiro, lim_velocidad_rad_s, 'Solución B: retiro');
+validarVelocidadesArticulares(qdB_vuelta, lim_velocidad_rad_s, 'Solución B: regreso a home');
 
 qB_full = [qB_aprox; qB_desc; qB; qB_retiro; qB_vuelta];
+validarTrayectoriaArticular(R, qB_full, 'Solución B: ciclo completo');
 
 disp('  Solución B calculada.');
 
@@ -359,15 +425,10 @@ sgtitle('Espacio Cartesiano: Sol. A (rojo--) vs Sol. B (azul—)');
 figure('Name','Desviación del TCP respecto al cordón ideal',...
        'Position',[500 50 900 500]);
 
-% Z_ideal = Z_cord * ones(pasos_cord, 1);    % Z debería ser constante
-% Y_ideal = linspace(Y_ini, Y_fin, pasos_cord)';
-% 1. Ajuste en Z: Le sumamos los 0.60m del pedestal al ideal para igualar la cota absoluta del robot
-Z_ideal = (0.60 + Z_cord) * ones(pasos_cord, 1);    
-
-% 2. Ajuste en Y: Usamos 'tpoly' para que el avance ideal tenga la misma 
-% aceleración y desaceleración suave (S-curve) que genera ctraj por defecto.
-[s, ~]  = tpoly(0, 1, pasos_cord); 
-Y_ideal = Y_ini + (Y_fin - Y_ini) * s;
+% Usamos la referencia REAL generada por ctraj. Así no se presupone que
+% ctraj emplea el mismo perfil temporal que tpoly.
+Z_ideal = xyzB_ref(:,3);
+Y_ideal = xyzB_ref(:,2);
 
 % Desviación en Z (debe ser ~0 si el robot mantiene la altura)
 subplot(1,2,1);
@@ -397,6 +458,21 @@ devZ_B = max(abs(xyzB(:,3) - Z_ideal)) * 1e3;
 devY_A = max(abs(xyzA(:,2) - Y_ideal)) * 1e3;
 devY_B = max(abs(xyzB(:,2) - Y_ideal)) * 1e3;
 
+% Error geométrico respecto a la recta entre inicio y fin (independiente
+% del perfil temporal): distancia de cada TCP a la recta ideal del cordón.
+p0 = xyzB_ref(1,:);
+direccion = xyzB_ref(end,:) - p0;
+longitud2 = dot(direccion, direccion);
+if longitud2 < eps
+    error('La trayectoria cartesiana de referencia tiene longitud nula.');
+end
+sA = ((xyzA - p0) * direccion') / longitud2;
+sB = ((xyzB - p0) * direccion') / longitud2;
+proyeccionA = p0 + sA .* direccion;
+proyeccionB = p0 + sB .* direccion;
+dev_linea_A = max(vecnorm(xyzA - proyeccionA, 2, 2)) * 1e3;
+dev_linea_B = max(vecnorm(xyzB - proyeccionB, 2, 2)) * 1e3;
+
 fprintf('\n=== ANÁLISIS DE PRECISIÓN (tramo de soldadura) ===\n');
 fprintf('  Desviación máxima en Z:\n');
 fprintf('    Sol. A (articular):  %.2f mm\n', devZ_A);
@@ -404,6 +480,10 @@ fprintf('    Sol. B (cartesiana): %.2f mm\n', devZ_B);
 fprintf('  Desviación máxima en Y:\n');
 fprintf('    Sol. A (articular):  %.2f mm\n', devY_A);
 fprintf('    Sol. B (cartesiana): %.2f mm\n', devY_B);
+fprintf('  Desviación geométrica máxima respecto a la recta:\n');
+fprintf('    Sol. A (articular):  %.3f mm\n', dev_linea_A);
+fprintf('    Sol. B (cartesiana): %.3f mm\n', dev_linea_B);
+fprintf('  Error máximo FK vs. pose objetivo de Sol. B: %.6g\n', error_TCP_B_max);
 
 % =========================================================================
 % 6. SIMULACIÓN 3D — Ciclo completo
@@ -444,12 +524,59 @@ fprintf('\n=== CONCLUSIÓN ===\n');
 fprintf('Para la tarea de soldadura por arco MIG/MAG se selecciona\n');
 fprintf('la SOLUCIÓN B (interpolación cartesiana + IK punto a punto).\n\n');
 fprintf('Justificación:\n');
-fprintf('  1. Precisión geométrica: el TCP describe una línea recta exacta\n');
-fprintf('     (desv. Z=%.2fmm vs %.2fmm de Sol. A).\n', devZ_B, devZ_A);
-fprintf('  2. Velocidad de avance constante en Y → calidad uniforme del cordón.\n');
-fprintf('  3. Orientación de la antorcha controlada en todo el recorrido.\n');
+fprintf('  1. La Sol. B fue verificada con FK frente a cada pose objetivo.\n');
+fprintf('     Error máximo de pose: %.6g; desviación a recta: %.3f mm.\n', ...
+    error_TCP_B_max, dev_linea_B);
+fprintf('  2. Se comprobó la velocidad articular contra el 80%% del máximo nominal.\n');
+fprintf('  3. Orientación de la antorcha verificada en cada muestra cartesiana.\n');
 fprintf('  4. El mayor costo computacional (IK en cada paso) es aceptable\n');
 fprintf('     para movimientos lentos de soldadura (%.1f mm/s).\n', ...
     (Y_fin-Y_ini)*1e3/t_cord);
 fprintf('\nLa Sol. A es adecuada para movimientos libres (home ↔ aprox)\n');
 fprintf('donde no se requiere control de trayectoria estricto.\n');
+
+% =========================================================================
+% FUNCIONES LOCALES DE VALIDACIÓN
+% =========================================================================
+function validarTrayectoriaArticular(R, q, nombre)
+    if isempty(q) || size(q,2) ~= 6 || any(~isfinite(q), 'all')
+        error('%s: trayectoria vacía, con dimensiones incorrectas o NaN/Inf.', nombre);
+    end
+
+    tolerancia = 1e-8;
+    fuera = q < (R.qlim(:,1)' - tolerancia) | q > (R.qlim(:,2)' + tolerancia);
+    if any(fuera, 'all')
+        [fila, articulacion] = find(fuera, 1, 'first');
+        error('%s: q%d fuera de límites en la muestra %d (%.4f rad).', ...
+            nombre, articulacion, fila, q(fila, articulacion));
+    end
+
+    if size(q,1) > 1
+        salto = max(abs(diff(q)), [], 'all');
+        if salto > 0.5
+            error('%s: salto articular de %.4f rad entre muestras (máximo permitido 0.5 rad).', ...
+                nombre, salto);
+        end
+    end
+end
+
+function validarVelocidadesArticulares(qd, limites, nombre)
+    if isempty(qd) || size(qd,2) ~= 6 || any(~isfinite(qd), 'all')
+        error('%s: velocidades vacías, con dimensiones incorrectas o NaN/Inf.', nombre);
+    end
+
+    vmax = max(abs(qd), [], 1);
+    excede = vmax > limites;
+    if any(excede)
+        articulaciones = find(excede);
+        detalle = '';
+        for k = 1:numel(articulaciones)
+            j = articulaciones(k);
+            detalle = [detalle, sprintf(' J%d: %.1f°/s > %.1f°/s;', ...
+                j, rad2deg(vmax(j)), rad2deg(limites(j)))]; %#ok<AGROW>
+        end
+        error('%s: se exceden límites de velocidad articular.%s Aumenta la duración del tramo.', ...
+            nombre, detalle);
+    end
+end
+
