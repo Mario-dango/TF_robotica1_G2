@@ -39,7 +39,7 @@ end
 %% --- q_mejor = true -> unica solucion ---
 if q_mejor == true
     try
-        q_temp = R.ikine(T, 'q0', q0, 'mask', M);
+        q_temp = R.ikine(T, 'q0', q0, 'mask', M); % matriz de 30x6 (variables articulares en cada pose)
 
         % Verificación con cinemática directa 
         Tc = double(R.fkine(q_temp));      % poses alcanzadas con q_temp (4x4xN)
@@ -53,7 +53,7 @@ if q_mejor == true
         else
 
             % corrección de saltos de 2*pi ---------------------------------
-            for k = 2:size(q_temp,1)
+            for k = 2:size(q_temp,1) % q_temp es de (30x6), entonces k = 2:30
                 n = round((q_temp(k,:) - q_temp(k-1,:)) / (2*pi));
                 q_temp(k,:) = q_temp(k,:) - 2*pi*n;
             end
@@ -61,8 +61,7 @@ if q_mejor == true
 
             % verificamos límites articulares
             fuera_de_limites = false;
-            for i = 1:6
-                if min(q_temp(:,i)) < R.qlim(i,1) || max(q_temp(:,i)) > R.qlim(i,2)
+            for i = 1:6                if min(q_temp(:,i)) < R.qlim(i,1) || max(q_temp(:,i)) > R.qlim(i,2)
                     fuera_de_limites = true;
                     mensaje = ['La articulación q', num2str(i), ' queda fuera de sus límites'];
                     break;

@@ -21,7 +21,8 @@ end
 % c. creamos objeto SerialLink
 
 R = SerialLink(L);
-R.name = 'FANUC M-10iD/12';
+
+R.name = 'FANUC M-10iD/12L';
 
 % limites articulares del robot
 R.qlim = [deg2rad(-170), deg2rad(170);
@@ -33,7 +34,8 @@ R.qlim = [deg2rad(-170), deg2rad(170);
 ];
 
 % ponemos un offset de 90° grados en q2 para tener una posición como la del
-% datasheet del robot FANUC M10iD/12
+
+% datasheet del robot FANUC M10iD/12L
 
 R.offset = [0 pi/2 0 0 0 0];
 
