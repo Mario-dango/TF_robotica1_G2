@@ -7,8 +7,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.28905774658258493 -0.11889417005656662 0.9498998870760845 3.8865456578889015
-  position 1583.379940916604 1611.4537173648268 1960.8038304281986
+  orientation -0.36660523407902235 0.014589541527531339 0.9302621929455598 3.067592129484591
+  position 3680.097364763045 -876.0992421058756 3759.5873194354017
 }
 TexturedBackground {
 }
@@ -23,26 +23,58 @@ Robot {
     Solid {
       children [
         HingeJoint {
+          device [
+            RotationalMotor {
+              name "motor1"
+            }
+          ]
           endPoint Solid {
+            rotation 1 0 0 0.5000000000000004
             children [
               HingeJoint {
+                device [
+                  RotationalMotor {
+                    name "motor2"
+                  }
+                ]
                 endPoint Solid {
-                  translation 74.64 0 450.72
+                  translation 74.63999999999999 216.08667875968638 395.54401229522875
+                  rotation -1 0 0 0.5000000000000004
                   children [
                     HingeJoint {
+                      device [
+                        RotationalMotor {
+                          name "motor3"
+                        }
+                      ]
                       endPoint Solid {
                         translation 0.000193029 0 640.11
                         rotation 0 1 0 1.5708
                         children [
                           HingeJoint {
+                            device [
+                              RotationalMotor {
+                                name "motor4"
+                              }
+                            ]
                             endPoint Solid {
                               translation -211.19 4.53 699.47
                               children [
                                 HingeJoint {
+                                  device [
+                                    RotationalMotor {
+                                      name "motor5"
+                                    }
+                                  ]
                                   endPoint Solid {
                                     rotation 1 0 0 -1.5707953071795862
                                     children [
                                       HingeJoint {
+                                        device [
+                                          RotationalMotor {
+                                            name "motor6"
+                                          }
+                                        ]
                                         endPoint Solid {
                                           translation 0 -89.26 -0.000327874
                                           rotation 1 0 0 1.5708
@@ -55,12 +87,12 @@ Robot {
                                               }
                                               geometry Mesh {
                                                 url [
-                                                  "../Recursos/fanuc-m-10id-12-1.snapshot.1/falange.stl"
+                                                  "../../Recursos/fanuc-m-10id-12-1.snapshot.1/falange.stl"
                                                 ]
                                               }
                                             }
                                           ]
-                                          name "brida"
+                                          name "falange"
                                         }
                                       }
                                       Shape {
@@ -71,7 +103,7 @@ Robot {
                                         }
                                         geometry Mesh {
                                           url [
-                                            "../Recursos/fanuc-m-10id-12-1.snapshot.1/muneca.stl"
+                                            "../../Recursos/fanuc-m-10id-12-1.snapshot.1/muneca.stl"
                                           ]
                                         }
                                       }
@@ -87,7 +119,7 @@ Robot {
                                   }
                                   geometry Mesh {
                                     url [
-                                      "../Recursos/fanuc-m-10id-12-1.snapshot.1/antebrazo.stl"
+                                      "../../Recursos/fanuc-m-10id-12-1.snapshot.1/antebrazo.stl"
                                     ]
                                   }
                                 }
@@ -103,7 +135,7 @@ Robot {
                             }
                             geometry Mesh {
                               url [
-                                "../Recursos/fanuc-m-10id-12-1.snapshot.1/codo.stl"
+                                "../../Recursos/fanuc-m-10id-12-1.snapshot.1/codo.stl"
                               ]
                             }
                           }
@@ -119,7 +151,7 @@ Robot {
                       }
                       geometry Mesh {
                         url [
-                          "../Recursos/fanuc-m-10id-12-1.snapshot.1/brazo.stl"
+                          "../../Recursos/fanuc-m-10id-12-1.snapshot.1/brazo.stl"
                         ]
                       }
                     }
@@ -135,7 +167,7 @@ Robot {
                 }
                 geometry Mesh {
                   url [
-                    "../Recursos/fanuc-m-10id-12-1.snapshot.1/hombro.stl"
+                    "../../Recursos/fanuc-m-10id-12-1.snapshot.1/hombro.stl"
                   ]
                 }
               }
@@ -151,7 +183,7 @@ Robot {
           }
           geometry Mesh {
             url [
-              "../Recursos/fanuc-m-10id-12-1.snapshot.1/base.stl"
+              "../../Recursos/fanuc-m-10id-12-1.snapshot.1/base.stl"
             ]
           }
         }
@@ -160,5 +192,5 @@ Robot {
     }
   ]
   name "FANUC M10iD/12"
-  controller "<extern>"
+  controller "controlMATLAB"
 }

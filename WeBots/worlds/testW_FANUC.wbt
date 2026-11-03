@@ -1,0 +1,196 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.46189081791976566 -0.14903009298814807 0.8743265429491167 4.025765631281601
+  position 1228.5485969131678 1815.4450291543826 3043.741066677013
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 5000 5000
+  wallHeight 1000
+}
+Robot {
+  children [
+    Solid {
+      children [
+        HingeJoint {
+          device [
+            RotationalMotor {
+              name "motor1"
+            }
+          ]
+          endPoint Solid {
+            rotation 1 0 0 -0.023595307179586023
+            children [
+              HingeJoint {
+                device [
+                  RotationalMotor {
+                    name "motor2"
+                  }
+                ]
+                endPoint Solid {
+                  translation 78.88 -1.22593 456.527
+                  rotation 1 0 0 0.0235988
+                  children [
+                    HingeJoint {
+                      device [
+                        RotationalMotor {
+                          name "motor3"
+                        }
+                      ]
+                      endPoint Solid {
+                        translation 0.000193029 0 640.11
+                        rotation 0 1 0 1.5708
+                        children [
+                          HingeJoint {
+                            device [
+                              RotationalMotor {
+                                name "motor4"
+                              }
+                            ]
+                            endPoint Solid {
+                              translation -211.19 4.53 699.47
+                              children [
+                                HingeJoint {
+                                  device [
+                                    RotationalMotor {
+                                      name "motor5"
+                                    }
+                                  ]
+                                  endPoint Solid {
+                                    rotation 1 0 0 -1.5707953071795862
+                                    children [
+                                      HingeJoint {
+                                        device [
+                                          RotationalMotor {
+                                            name "motor6"
+                                          }
+                                        ]
+                                        endPoint Solid {
+                                          translation 0 -89.26 -0.000327874
+                                          rotation 1 0 0 1.5708
+                                          children [
+                                            Shape {
+                                              appearance Appearance {
+                                                material Material {
+                                                  diffuseColor 0 0 0.498039
+                                                }
+                                              }
+                                              geometry Mesh {
+                                                url [
+                                                  "../../Recursos/fanuc-m-10id-12-1.snapshot.1/falange.stl"
+                                                ]
+                                              }
+                                            }
+                                          ]
+                                          name "falange"
+                                        }
+                                      }
+                                      Shape {
+                                        appearance Appearance {
+                                          material Material {
+                                            diffuseColor 0.890196 0.447059 0
+                                          }
+                                        }
+                                        geometry Mesh {
+                                          url [
+                                            "../../Recursos/fanuc-m-10id-12-1.snapshot.1/muneca.stl"
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                    name "muneca"
+                                  }
+                                }
+                                Shape {
+                                  appearance Appearance {
+                                    material Material {
+                                      diffuseColor 1 1 0
+                                    }
+                                  }
+                                  geometry Mesh {
+                                    url [
+                                      "../../Recursos/fanuc-m-10id-12-1.snapshot.1/antebrazo.stl"
+                                    ]
+                                  }
+                                }
+                              ]
+                              name "atebrazo"
+                            }
+                          }
+                          Shape {
+                            appearance Appearance {
+                              material Material {
+                                diffuseColor 0 1 1
+                              }
+                            }
+                            geometry Mesh {
+                              url [
+                                "../../Recursos/fanuc-m-10id-12-1.snapshot.1/codo.stl"
+                              ]
+                            }
+                          }
+                        ]
+                        name "codo"
+                      }
+                    }
+                    Shape {
+                      appearance Appearance {
+                        material Material {
+                          diffuseColor 0.9 0.133333 0
+                        }
+                      }
+                      geometry Mesh {
+                        url [
+                          "../../Recursos/fanuc-m-10id-12-1.snapshot.1/brazo.stl"
+                        ]
+                      }
+                    }
+                  ]
+                  name "brazo"
+                }
+              }
+              Shape {
+                appearance Appearance {
+                  material Material {
+                    diffuseColor 0.6 0.133333 0.6
+                  }
+                }
+                geometry Mesh {
+                  url [
+                    "../../Recursos/fanuc-m-10id-12-1.snapshot.1/hombro.stl"
+                  ]
+                }
+              }
+            ]
+            name "hombro"
+          }
+        }
+        Shape {
+          appearance Appearance {
+            material Material {
+              diffuseColor 0 0.133333 0
+            }
+          }
+          geometry Mesh {
+            url [
+              "../../Recursos/fanuc-m-10id-12-1.snapshot.1/base.stl"
+            ]
+          }
+        }
+      ]
+      name "base"
+    }
+  ]
+  name "FANUC M10iD/12"
+  controller "controlMATLAB_FANUC"
+}
