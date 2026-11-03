@@ -11,16 +11,19 @@ q0 = [0, 0, 0, 0.3, 0.5, 0.2];
 % b) sucesión de poses
 q_inicio = [0, 0, 0, 0.3, 0.5, 0.2];
 q_fin    = [0, pi/4, pi/2, 0.3, 0.5, 0.2];
-trayectoria_real = jtraj(q_inicio, q_fin, 30); 
+trayectoria_real = jtraj(q_inicio, q_fin, 30); % devuelve los valores de c/articulación en cada pose (30x6)
 
 %% --- CINEMATICA DIRECTA ---
-% Obtenemos las poses cartesianas (T será de tamaño 4x4x30)
+% Obtenemos las matrices de transformación homogeneas (T será de tamaño 4x4x30 (1 4x4 por cada pose del robot))
 T = R.fkine(trayectoria_real);
 
 % posiciones (x,y,z) del objetivo, una fila por pose (30x3).
 % T(1:3,4,:) es la columna de traslación de cada una de las 30 matrices;
 % squeeze la acomoda y (') la transpone a formato 30x3.
 Tm = double(T);
+disp("--- Matrices de transformación homogéneas para cada pose del robot ---")
+disp(Tm);
+% extraemos (x,y,z) de cada pose - esto se usa para ploteo
 xyz_objetivo = squeeze(Tm(1:3,4,:))';
 
 %% --- PRUEBA 1: q_mejor = true (Única solución) ---
@@ -34,16 +37,16 @@ disp(['Mensaje: ', mensaje_1]);
 
 if exito_1
     figure('Name', 'Articulaciones - Única solución');
-    plot(q_resultado_1, 'LineWidth', 1.5);
+    plot(q_resultado_1, 'LineWidth', 1.5); % q_resultado_1 matriz de 30x6 
     grid on; xlabel('Muestra'); ylabel('q [rad]');
     legend('q1','q2','q3','q4','q5','q6');
 
     % robot + trayectoria cartesiana objetivo
     figure('Name', 'Prueba Única Solución');
-    R.plot(q_resultado_1(1,:), 'workspace', workspace, 'scale', 0.5, 'notiles');
+    R.plot(q_resultado_1(1,:), 'workspace', workspace, 'scale', 0.8, 'notiles');
     hold on;
     plot3(xyz_objetivo(:,1), xyz_objetivo(:,2), xyz_objetivo(:,3), 'r--', 'LineWidth', 2);
-    R.plot(q_resultado_1, 'workspace', workspace, 'scale', 0.5, 'notiles');
+    R.plot(q_resultado_1, 'workspace', workspace, 'scale', 0.8, 'notiles');
 end
 
 %% --- PRUEBA 2: q_mejor = false (Múltiples soluciones) ---
@@ -64,16 +67,16 @@ if exito_2
         grid on; xlabel('Muestra'); ylabel('q [rad]');
         legend('q1','q2','q3','q4','q5','q6');
 
-        R_i = SerialLink(R, 'name', ['FANUC M-10iD/8L #', num2str(i)]);
+        R_i = SerialLink(R, 'name', ['FANUC M-10iD/12L #', num2str(i)]);
         figure('Name', ['Configuración #', num2str(i)]);
 
         % robot + trayectoria objetivo, y luego animación
-        R_i.plot(q_resultado_2{i}(1,:), 'workspace', workspace, 'scale', 0.5, 'notiles');
+        R_i.plot(q_resultado_2{i}(1,:), 'workspace', workspace, 'scale', 0.8, 'notiles');
         hold on;
         plot3(xyz_objetivo(:,1), xyz_objetivo(:,2), xyz_objetivo(:,3), 'r--', 'LineWidth', 2);
 
         % Animar la trayectoria completa
-        R_i.plot(q_resultado_2{i}, 'workspace', workspace, 'scale', 0.5, 'notiles');
+        R_i.plot(q_resultado_2{i}, 'workspace', workspace, 'scale', 0.8, 'notiles');
 
         disp(['Solución #', num2str(i), ' (primera fila, en grados):']);
         disp(rad2deg(q_resultado_2{i}(1,:)));

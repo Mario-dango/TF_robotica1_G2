@@ -1,4 +1,4 @@
-%% JACOBIANO SIMBOLICO - FANUC M-10iD/8L
+%% JACOBIANO SIMBOLICO - FANUC M-10iD/12L
 clc; clear; close all;
 robot;   % crea R (se usa solo para verificar numericamente al final)
 
