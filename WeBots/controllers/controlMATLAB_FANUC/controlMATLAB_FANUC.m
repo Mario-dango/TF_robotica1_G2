@@ -1,138 +1,162 @@
 function controlMATLAB_FANUC
 
 % =========================================================================
-% 0. CONFIGURACIÓN DE RUTAS RELATIVAS (Estructura GitHub)
+% CONTROLADOR WEBOTS + MATLAB — FANUC M-10iD/12
+% Integra robot.m + IK_numeric.m + robot_traj_validado.m con Webots
 % =========================================================================
-% Guardamos la ruta actual del controlador para volver al final si es necesario
-ruta_controlador = pwd; 
 
-% Buscamos la carpeta madre del proyecto (TF_robotica1_G2) subiendo 3 niveles
-% Desde: \TF_robotica1_G2\WeBots\controllers\controlMATLAB_FANUC\
-cd('..\..\..\');
-ruta_raiz_proyecto = pwd;
+TIME_STEP = 32;                  % [ms] paso de simulación de Webots
+dt = TIME_STEP / 1000;           % [s]  paso temporal (0.032 s)
 
-% Construimos la ruta hacia la carpeta de tus scripts de MATLAB
-ruta_scripts_matlab = fullfile(ruta_raiz_proyecto, 'MatLAB');
-
-% Añadimos la carpeta de tus scripts y todas sus subcarpetas al PATH de MATLAB
-% Esto incluye automáticamente tu archivo 'robot.m' e 'IK_numeric.m'
-addpath(genpath(ruta_scripts_matlab));
-
-% Regresamos a la carpeta del controlador para que Webots trabaje correctamente
-cd(ruta_controlador);
-
-% =========================================================================
-% 1. INICIALIZACIÓN DE WEBOTS
-% =========================================================================
-TIME_STEP = 32;
 wb_robot_init();
 
-% Obtener referencias de los 6 motores en Webots
+% 1. Obtener dispositivos de los 6 motores de Webots
 motores = zeros(1, 6);
-for i = 1:6
-    motores(i) = wb_robot_get_device(['motor' num2str(i)]);
-    wb_motor_set_velocity(motores(i), 1.0); 
+for j = 1:6
+    motores(j) = wb_robot_get_device(['motor', num2str(j)]);
 end
 
-% =========================================================================
-% 2. CÁLCULO DE LA TRAYECTORIA CARTESIANA (Solución B)
-% =========================================================================
-disp('=== Calculando trayectoria con rvctools ===');
-
-% Ejecutamos tu script que define el robot (FANUC M-10iD/8L)
+% 2. Cargar modelo cinemático (robot.m define R, R.base, R.tool, R.qlim, R.offset)
+% Si robot.m e IK_numeric.m están en otra carpeta, descomentar y ajustar:
+% addpath('C:/ruta/a/tus/scripts_matlab');
 robot;
 
-% Definición de puntos clave en base a tu archivo robot_traj.m
-q_home = [0, -pi/4, -pi/2, -pi/2, -pi/4, 0];
-X_cord = 0.80; Y_ini = -0.20; Y_fin = 0.20; Z_cord = 0.65; Z_aprox = Z_cord + 0.05;
+% 3. Configurar velocidades máximas de los motores según el 80% nominal del FANUC
+velocidad_nominal_deg_s = [260 240 260 430 450 720];
+lim_velocidad_rad_s     = deg2rad(velocidad_nominal_deg_s * 0.80);
+
+for j = 1:6
+    wb_motor_set_velocity(motores(j), lim_velocidad_rad_s(j));
+end
+
+% Vector de ajuste de sentido de giro por si algún HingeJoint en Webots
+% tiene el eje invertido respecto al eje Z de Denavit-Hartenberg (+1 o -1)
+signos_webots = [1, 1, 1, 1, 1, 1];
+
+disp('¡Conexión con Webots establecida! Calculando y validando trayectoria...');
+
+% =========================================================================
+% ANTES DEL WHILE — Planificación y Validación Cinemática Completa
+% =========================================================================
+T_base = double(R.base);
+
+% Pose Home: Pose "L" del datasheet (cero articular gracias a R.offset en robot.m)
+q_home = [0, 0, 0, 0, 0, 0];
+
+% Puntos cartesianos del cordón (relativos a la base del robot)
+X_cord  =  0.90;
+Y_ini   = -0.20;
+Y_fin   =  0.20;
+Z_cord  =  0.65;
+Z_aprox =  Z_cord + 0.05;
+
 ori = troty(pi) * trotx(deg2rad(15));
 
-% --- CORRECCIÓN DE TIPOS (Matrices 4x4 puras) ---
-% Forzamos a que tanto R.base, transl y ori sean tratados como matrices numéricas puras de 4x4
+T_aprox  = T_base * transl(X_cord, Y_ini, Z_aprox) * ori;
+T_inicio = T_base * transl(X_cord, Y_ini, Z_cord)  * ori;
+T_fin    = T_base * transl(X_cord, Y_fin, Z_cord)  * ori;
+T_retiro = T_base * transl(X_cord, Y_fin, Z_aprox) * ori;
 
-% R.base ya la definiste como double, pero aseguramos las funciones del toolbox
-T_base   = double(R.base); 
-T_transl = @(x,y,z) double(transl(x, y, z));
-T_ori    = double(ori);
+% Semilla inicial coherente con R.offset de robot.m
+q_seed = [0, deg2rad(45), deg2rad(-60), deg2rad(160), deg2rad(-125), 0];
 
-% Ahora multiplicamos matrices homogéneas puras sin conflicto de objetos
-T_aprox  = T_base * T_transl(X_cord, Y_ini,  Z_aprox) * T_ori;
-T_inicio = T_base * T_transl(X_cord, Y_ini,  Z_cord)  * T_ori;
-T_fin    = T_base * T_transl(X_cord, Y_fin,  Z_cord)  * T_ori;
-T_retiro = T_base * T_transl(X_cord, Y_fin,  Z_aprox) * T_ori;
-
-
-% Semilla y cálculo de los puntos críticos de articulación
-q_seed = [0, pi/4, -pi/4, 0, -pi/2, 0];
+% Resolución de puntos críticos con IK_numeric
 [ok, q_tmp, msg] = IK_numeric(R, T_aprox, true, q_seed);
-if ~ok, error('CI de T_aprox rechazada por IK_numeric: %s', msg); end
+if ~ok, error('CI de T_aprox rechazada: %s', msg); end
 q_aprox = q_tmp(end,:);
 
 [ok, q_tmp, msg] = IK_numeric(R, T_inicio, true, q_aprox);
-if ~ok, error('CI de T_inicio rechazada por IK_numeric: %s', msg); end
+if ~ok, error('CI de T_inicio rechazada: %s', msg); end
 q_inicio = q_tmp(end,:);
 
-[ok, q_tmp, msg] = IK_numeric(R, T_fin, true, q_inicio);
-if ~ok, error('CI de T_fin rechazada por IK_numeric: %s', msg); end
-q_fin = q_tmp(end,:);
+% Tiempos de cada fase sincronizados con TIME_STEP de Webots
+t_aprox  = 3.0;  pasos_aprox  = round(t_aprox  / dt);
+t_desc   = 1.0;  pasos_desc   = round(t_desc   / dt);
+t_cord   = 5.0;  pasos_cord   = round(t_cord   / dt);
+t_retiro = 1.0;  pasos_retiro = round(t_retiro / dt);
+t_vuelta = 3.0;  pasos_vuelta = round(t_vuelta / dt);
 
-[ok, q_tmp, msg] = IK_numeric(R, T_retiro, true, q_fin);
-if ~ok, error('CI de T_retiro rechazada por IK_numeric: %s', msg); end
-q_retiro = q_tmp(end,:);
+tv_aprox  = linspace(0, t_aprox,  pasos_aprox);
+tv_desc   = linspace(0, t_desc,   pasos_desc);
+tv_retiro = linspace(0, t_retiro, pasos_retiro);
+tv_vuelta = linspace(0, t_vuelta, pasos_vuelta);
 
-% Parámetros temporales (Tramos idénticos a tus especificaciones de soldadura)
-pasos_aprox = 30; pasos_desc = 10; pasos_cord = 50; pasos_retiro = 10; pasos_vuelta = 30;
-tv_aprox = linspace(0, 3, pasos_aprox); tv_desc = linspace(0, 1, pasos_desc);
-tv_retiro = linspace(0, 1, pasos_retiro); tv_vuelta = linspace(0, 3, pasos_vuelta);
+% Fase 1: Home -> Aprox -> Inicio (interpolación articular jtraj)
+qB_aprox = jtraj(q_home,  q_aprox,  tv_aprox);
+qB_desc  = jtraj(q_aprox, q_inicio, tv_desc);
+q_ida    = [qB_aprox; qB_desc];
 
-% Generación de perfiles articulares y cartesiano
-qB_aprox  = jtraj(q_home, q_aprox, tv_aprox);
-qB_desc   = jtraj(q_aprox, q_inicio, tv_desc);
+% Fase 2: Cordón de soldadura Inicio -> Fin (interpolación cartesiana ctraj + IK)
+T_tray_B = ctraj(T_inicio, T_fin, pasos_cord);
+[ok, q_cordon, msg] = IK_numeric(R, T_tray_B, true, q_inicio);
+if ~ok, error('Trayectoria cartesiana rechazada: %s', msg); end
 
-T_tray_B  = ctraj(T_inicio, T_fin, pasos_cord);
-[ok, qB, msg] = IK_numeric(R, T_tray_B, true, q_inicio);
-if ~ok, error('Trayectoria cartesiana rechazada por IK_numeric: %s', msg); end
-
-% Resolución del retiro desde la configuración real alcanzada por la Solución B
-q_fin_B = qB(end,:);
+% Fase 3: Fin -> Retiro -> Home (interpolación articular jtraj)
+q_fin_B = q_cordon(end,:);
 [ok, q_tmp, msg] = IK_numeric(R, T_retiro, true, q_fin_B);
-if ~ok, error('CI de retiro para Solución B rechazada por IK_numeric: %s', msg); end
+if ~ok, error('CI de retiro rechazada: %s', msg); end
 q_retiro_B = q_tmp(end,:);
 
-qB_retiro = jtraj(q_fin_B, q_retiro_B, tv_retiro);
-qB_vuelta = jtraj(q_retiro_B, q_home, tv_vuelta);
+qB_retiro = jtraj(q_fin_B,    q_retiro_B, tv_retiro);
+qB_vuelta = jtraj(q_retiro_B, q_home,     tv_vuelta);
+q_regreso = [qB_retiro; qB_vuelta];
 
-% Concatenación de toda la trayectoria
-q_total = [qB_aprox; qB_desc; qB; qB_retiro; qB_vuelta];
-total_muestras = size(q_total, 1);
+fprintf('Trayectoria lista: Ida=%d pasos | Cordón=%d pasos | Regreso=%d pasos\n', ...
+    size(q_ida,1), size(q_cordon,1), size(q_regreso,1));
 
-disp('¡Trayectoria calculada con éxito! Iniciando simulación en Webots...');
-
-% =========================================================================
-% 3. BUCLE DE EJECUCIÓN EN WEBOTS
-% =========================================================================
+% Inicializar máquina de estados
+% Estado 1: Ir a inicio de recta | Estado 2: Seguir recta | Estado 3: Volver a Home | Estado 4: Fin
+estado = 1;
 paso_actual = 1;
 
+% =========================================================================
+% BUCLE PRINCIPAL DE WEBOTS
+% =========================================================================
 while wb_robot_step(TIME_STEP) ~= -1
-    if paso_actual <= total_muestras
-        q_enviar = q_total(paso_actual, :);
-        
-        % NOTA DE OFFSET: Si ves que en Webots el robot dobla al revés o asume una postura
-        % incorrecta, descomentá la siguiente línea para restar el desfase de Peter Corke:
-        % q_enviar = q_enviar - R.offset;
-        
-        % Asignar la posición calculada a cada motor correspondiente
-        for j = 1:6
-            wb_motor_set_position(motores(j), q_enviar(j));
-        end
-        
-        paso_actual = paso_actual + 1;
-    else
-        disp('Trayectoria de soldadura finalizada por completo.');
-        break; 
+
+    switch estado
+        case 1 % Estado 1: Moverse de Home a Aproximación y descender al Inicio del cordón
+            if paso_actual <= size(q_ida, 1)
+                q_cmd = q_ida(paso_actual, :) .* signos_webots;
+                for j = 1:6
+                    wb_motor_set_position(motores(j), q_cmd(j));
+                end
+                paso_actual = paso_actual + 1;
+            else
+                disp('>> Inicio del cordón alcanzado. Comenzando soldadura (ctraj)...');
+                estado = 2;
+                paso_actual = 1;
+            end
+
+        case 2 % Estado 2: Seguir la trayectoria recta del cordón paso a paso
+            if paso_actual <= size(q_cordon, 1)
+                q_cmd = q_cordon(paso_actual, :) .* signos_webots;
+                for j = 1:6
+                    wb_motor_set_position(motores(j), q_cmd(j));
+                end
+                paso_actual = paso_actual + 1;
+            else
+                disp('>> Cordón finalizado. Retirando antorcha y volviendo a Home...');
+                estado = 3;
+                paso_actual = 1;
+            end
+
+        case 3 % Estado 3: Retiro vertical y regreso a la pose Home ("L")
+            if paso_actual <= size(q_regreso, 1)
+                q_cmd = q_regreso(paso_actual, :) .* signos_webots;
+                for j = 1:6
+                    wb_motor_set_position(motores(j), q_cmd(j));
+                end
+                paso_actual = paso_actual + 1;
+            else
+                disp('>> Ciclo completado en Pose Home.');
+                estado = 4;
+            end
+
+        case 4 % Estado 4: Espera en Home
+            % Mantiene la posición Home sin recalcular
     end
 end
 
-% Limpieza al terminar
 wb_robot_cleanup();
 end

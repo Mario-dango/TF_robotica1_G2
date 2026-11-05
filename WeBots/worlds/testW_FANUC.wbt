@@ -7,8 +7,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.46189081791976566 -0.14903009298814807 0.8743265429491167 4.025765631281601
-  position 1228.5485969131678 1815.4450291543826 3043.741066677013
+  orientation -0.28248231304701465 -0.08348176875367232 0.9556330556763756 3.900054164842331
+  position 2998.721741313889 3008.579083444548 3329.1746826723725
 }
 TexturedBackground {
 }
@@ -18,30 +18,109 @@ RectangleArena {
   floorSize 5000 5000
   wallHeight 1000
 }
+Solid {
+  translation 1440.03 0 501.95
+  rotation 0 1 0 -1.5707953071795862
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+          diffuseColor 0.333333 0.333333 0.498039
+        }
+      }
+      geometry Box {
+        size 1000 1000 200
+      }
+    }
+  ]
+  name "tablero"
+}
+Solid {
+  translation 0 0 300
+  children [
+    Pose {
+      translation 0 0 290
+      children [
+        Shape {
+          appearance Appearance {
+            material Material {
+              diffuseColor 0 0 0
+            }
+          }
+          geometry Box {
+            size 500 500 30
+          }
+        }
+      ]
+    }
+    Pose {
+      translation 0 0 -284.9
+      children [
+        Shape {
+          appearance Appearance {
+            material Material {
+              diffuseColor 0 0 0
+            }
+          }
+          geometry Box {
+            size 500 500 30
+          }
+        }
+      ]
+    }
+    Shape {
+      appearance Appearance {
+        material Material {
+          diffuseColor 0 0 0
+        }
+      }
+      geometry Cylinder {
+        height 600
+        radius 180
+      }
+    }
+  ]
+  name "pedestal"
+}
 Robot {
   children [
     Solid {
+      translation 0 0 600
       children [
         HingeJoint {
+          jointParameters HingeJointParameters {
+            position -5.551115123125783e-16
+            axis 0 0 1
+          }
           device [
             RotationalMotor {
               name "motor1"
             }
           ]
           endPoint Solid {
-            rotation 1 0 0 -0.023595307179586023
+            rotation -1 5.551115123125783e-16 -4.705052182780452e-14 0.023595307179585058
             children [
               HingeJoint {
+                jointParameters HingeJointParameters {
+                  position -2.220446049250313e-16
+                  axis 0 -1 0
+                  anchor 78.88 -1.22593 456.527
+                }
                 device [
                   RotationalMotor {
                     name "motor2"
                   }
                 ]
                 endPoint Solid {
-                  translation 78.88 -1.22593 456.527
-                  rotation 1 0 0 0.0235988
+                  translation 78.87999999999997 -1.2259299999999769 456.5269999999999
+                  rotation 1 -9.408711461901508e-15 1.1102230246251565e-16 0.02359880000000247
                   children [
                     HingeJoint {
+                      jointParameters HingeJointParameters {
+                        position 7.771561172376096e-16
+                        axis 0 -1 0
+                        anchor 0.000193029 0 640.11
+                      }
                       device [
                         RotationalMotor {
                           name "motor3"
@@ -49,36 +128,85 @@ Robot {
                       ]
                       endPoint Solid {
                         translation 0.000193029 0 640.11
-                        rotation 0 1 0 1.5708
+                        rotation 0 1 0 1.5707999999999984
                         children [
                           HingeJoint {
+                            jointParameters HingeJointParameters {
+                              position -3.552713678800501e-15
+                              axis 0 0 1
+                              anchor -211.19 4.53 699.47
+                            }
                             device [
                               RotationalMotor {
                                 name "motor4"
                               }
                             ]
                             endPoint Solid {
-                              translation -211.19 4.53 699.47
+                              translation -194.75 0.36999999999989 699.47
                               children [
                                 HingeJoint {
+                                  jointParameters HingeJointParameters {
+                                    position -2.220446049250313e-16
+                                    axis 0 -1 0
+                                  }
                                   device [
                                     RotationalMotor {
                                       name "motor5"
                                     }
                                   ]
                                   endPoint Solid {
-                                    rotation 1 0 0 -1.5707953071795862
+                                    rotation -0.9999999999999999 -1.7431536870943696e-32 0 1.5707953071795862
                                     children [
                                       HingeJoint {
+                                        jointParameters HingeJointParameters {
+                                          position -2.220446049250313e-16
+                                          axis 0 -1 0
+                                          anchor 0 -89.26 -0.000327874
+                                        }
                                         device [
                                           RotationalMotor {
                                             name "motor6"
+                                            maxVelocity 15
+                                            maxTorque 15
                                           }
                                         ]
                                         endPoint Solid {
                                           translation 0 -89.26 -0.000327874
-                                          rotation 1 0 0 1.5708
+                                          rotation 1 -5.5510947327788333e-17 5.551115123125783e-17 1.5708
                                           children [
+                                            Pose {
+                                              translation 0 0 5
+                                              children [
+                                                Pose {
+                                                  translation 13.8725 0 50.9499
+                                                  rotation 0 1 0 0.3124
+                                                  children [
+                                                    Shape {
+                                                      appearance Appearance {
+                                                        material Material {
+                                                          diffuseColor 0.333333 0.333333 0.498039
+                                                        }
+                                                      }
+                                                      geometry Cylinder {
+                                                        height 103
+                                                        radius 11
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                                Shape {
+                                                  appearance Appearance {
+                                                    material Material {
+                                                      diffuseColor 0.333333 0.333333 0.498039
+                                                    }
+                                                  }
+                                                  geometry Cylinder {
+                                                    height 10
+                                                    radius 35
+                                                  }
+                                                }
+                                              ]
+                                            }
                                             Shape {
                                               appearance Appearance {
                                                 material Material {
