@@ -3,9 +3,9 @@
 
 dh = [
     0,   0.450,   0.075,   pi/2;
-    0,       0,   0.840,      0;
-    0,  0.1239,   0.195,   pi/2;
-    0,   1.100,       0,   pi/2;
+    0,       0,   0.640,      0;
+    0,   0.119,   0.195,   pi/2; % el parametro d no sale bien en el datasheet, considero la mitad de la medida 238mm   
+    0,   0.600,       0,   pi/2; % 600 porque en el datasheet no se especifica una medida y use 100mm (700-100)mm =s 600mm
     0,       0,       0,  -pi/2;
     0,   0.075,       0,      0
     ];

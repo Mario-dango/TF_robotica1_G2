@@ -10,10 +10,10 @@ q = [q1, q2, q3, q4, q5, q6];
 % trabajamos con funciones simbolicas, para que no queden numeros excesivamente grandes
 
 % valores del parámetro d
-d     = [sym(9)/20, 0, sym(1239)/10000, sym(11)/10, 0, sym(3)/40];
+d     = [sym(9)/20, 0, sym(119)/1000, sym(3)/5, 0, sym(3)/40];
 
 % valores del parámetro a
-a     = [sym(3)/40, sym(21)/25, sym(39)/200, 0, 0, 0];
+a     = [sym(3)/40, sym(16)/25, sym(39)/200, 0, 0, 0];
 
 % valores del parametro alpha
 alpha = [sym(pi)/2, 0, sym(pi)/2, sym(pi)/2, -sym(pi)/2, 0];
