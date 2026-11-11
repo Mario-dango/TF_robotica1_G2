@@ -6,11 +6,14 @@ robot;
 %% --- PREPARACIÓN DE LOS PARÁMETROS DE ENTRADA ---
 
 % a) semilla inicial
-q0 = [0, 0, 0, 0.3, 0.5, 0.2];
+% q0 = [0, 0, 0, 0.3, 0.5, 0.2];
+q0 = [0, 0, 0, 2.8, 0.5, 2.8];
 
 % b) sucesión de poses
-q_inicio = [0, 0, 0, 0.3, 0.5, 0.2];
-q_fin    = [0, pi/4, pi/2, 0.3, 0.5, 0.2];
+% q_inicio = [0, 0, 0, 0.3, 0.5, 0.2];
+% q_fin    = [0, pi/4, pi/2, 0.3, 0.5, 0.2];
+q_inicio = [0, 0, 0, 2.8, 0.5, 2.8];
+q_fin    = [0, pi/4, pi/2, 3.2, 0.8, 3.7];
 trayectoria_real = jtraj(q_inicio, q_fin, 30); % devuelve los valores de c/articulación en cada pose (30x6)
 
 %% --- CINEMATICA DIRECTA ---
@@ -38,7 +41,7 @@ disp(['Mensaje: ', mensaje_1]);
 if exito_1
     figure('Name', 'Articulaciones - Única solución');
     plot(q_resultado_1, 'LineWidth', 1.5); % q_resultado_1 matriz de 30x6 
-    grid on; xlabel('Muestra'); ylabel('q [rad]');
+    grid on; xlabel('Muestra'); ylabel('q [rad]'); ylim([-4 4.5]);
     legend('q1','q2','q3','q4','q5','q6');
 
     % robot + trayectoria cartesiana objetivo
@@ -67,7 +70,7 @@ if exito_2
         grid on; xlabel('Muestra'); ylabel('q [rad]');
         legend('q1','q2','q3','q4','q5','q6');
 
-        R_i = SerialLink(R, 'name', ['FANUC M-10iD/12L #', num2str(i)]);
+        R_i = SerialLink(R, 'name', ['FANUC M-10iD/12 #', num2str(i)]);
         figure('Name', ['Configuración #', num2str(i)]);
 
         % robot + trayectoria objetivo, y luego animación

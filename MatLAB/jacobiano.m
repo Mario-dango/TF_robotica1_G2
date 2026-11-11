@@ -1,4 +1,4 @@
-%% JACOBIANO SIMBOLICO - FANUC M-10iD/12L
+%% JACOBIANO SIMBOLICO - FANUC M-10iD/12
 clc; clear; close all;
 robot;   % crea R (se usa solo para verificar numericamente al final)
 
@@ -10,7 +10,7 @@ q = [q1, q2, q3, q4, q5, q6];
 % trabajamos con funciones simbolicas, para que no queden numeros excesivamente grandes
 
 % valores del parámetro d
-d     = [sym(9)/20, 0, sym(119)/1000, sym(3)/5, 0, sym(3)/40];
+d     = [sym(9)/20, 0, sym(119)/1000, sym(7)/10, 0, sym(3)/40];
 
 % valores del parámetro a
 a     = [sym(3)/40, sym(16)/25, sym(39)/200, 0, 0, 0];
@@ -74,3 +74,25 @@ Jnum = R.jacob0(qn);
 Jsym = double(subs(J, q, qn));
 fprintf('Error maximo vs jacob0: %g\n', max(abs(Jnum(:) - Jsym(:))));
 
+
+%% Calculo numerico de singularidades de brazo
+disp('Buscando valores singulares para q2 y q3...');
+
+% Convertimos la expresion simbolica a una funcion anonima de MATLAB
+det_arm_func = matlabFunction(det_arm, 'Vars', [q2, q3]);
+
+% Buscamos las raices usando vpasolve o fsolve. 
+% Como hay multiples soluciones, probamos con puntos semilla distintos (en radianes):
+semillas = [0, 0; pi/2, 0; -pi/2, pi/4]; 
+
+for i = 1:size(semillas, 1)
+    q2_semilla = semillas(i, 1);
+    q3_semilla = semillas(i, 2);
+    
+    % fsolve busca la combinacion de q2 y q3 que hace que la ecuacion de 0
+    opciones = optimoptions('fsolve', 'Display', 'none');
+    raiz = fsolve(@(var) det_arm_func(var(1), var(2)), [q2_semilla, q3_semilla], opciones);
+    
+    % Mostramos los resultados en grados para que sean faciles de interpretar
+    fprintf('Singularidad detectada en: q2 = %.2f°, q3 = %.2f°\n', rad2deg(raiz(1)), rad2deg(raiz(2)));
+end

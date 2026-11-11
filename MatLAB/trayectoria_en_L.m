@@ -1,5 +1,5 @@
 %% =====================================================================
-%  TRAYECTORIA DE SOLDADURA EN "L" - FANUC M-10iD/12L
+%  TRAYECTORIA DE SOLDADURA EN "L" - FANUC M-10iD/12
 %
 %    Traslados en el aire  -> interpolación ARTICULAR  (jtraj)
 %       q_home -> aprox -> A        y        B -> retiro -> q_home

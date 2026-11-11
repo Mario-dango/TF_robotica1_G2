@@ -5,7 +5,7 @@ dh = [
     0,   0.450,   0.075,   pi/2;
     0,       0,   0.640,      0;
     0,   0.119,   0.195,   pi/2; % el parametro d no sale bien en el datasheet, considero la mitad de la medida 238mm   
-    0,   0.600,       0,   pi/2; % 600 porque en el datasheet no se especifica una medida y use 100mm (700-100)mm =s 600mm
+    0,   0.700,       0,   pi/2; % 600 porque en el datasheet no se especifica una medida y use 100mm (700-100)mm =s 600mm
     0,       0,       0,  -pi/2;
     0,   0.075,       0,      0
     ];
@@ -22,11 +22,11 @@ end
 
 R = SerialLink(L);
 
-R.name = 'FANUC M-10iD/12L';
+R.name = 'FANUC M-10iD/12';
 
 % limites articulares del robot
 R.qlim = [deg2rad(-170), deg2rad(170);
-          deg2rad(-170), deg2rad(65);
+          deg2rad(-145), deg2rad(90);
           deg2rad(-170), deg2rad(285);
           deg2rad(-190), deg2rad(190);
           deg2rad(-140), deg2rad(140);

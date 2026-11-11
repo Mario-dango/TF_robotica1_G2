@@ -13,6 +13,7 @@ seeds = 100;
 tol = 1e-2;
 % salto máximo admitido entre dos muestras consecutivas [rad]
 umbral_salto = 0.5;
+% umbral_salto = Inf;
 % Error máximo admitido entre la pose pedida y la pose que
 % realmente alcanza el robot con la q calculada (norma de la diferencia de
 % las matrices 4x4). Si es mayor, ikine NO convergió.
@@ -61,7 +62,8 @@ if q_mejor == true
 
             % verificamos límites articulares
             fuera_de_limites = false;
-            for i = 1:6                if min(q_temp(:,i)) < R.qlim(i,1) || max(q_temp(:,i)) > R.qlim(i,2)
+            for i = 1:6                
+                if min(q_temp(:,i)) < R.qlim(i,1) || max(q_temp(:,i)) > R.qlim(i,2)
                     fuera_de_limites = true;
                     mensaje = ['La articulación q', num2str(i), ' queda fuera de sus límites'];
                     break;
